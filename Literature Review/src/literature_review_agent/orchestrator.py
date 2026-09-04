@@ -200,6 +200,12 @@ class Orchestrator:
             return StageOutcome(stage, StageStatus.COMPLETE, "already complete")
 
         runner: Callable[[], StageOutcome] = getattr(self, f"_stage_{stage.value}")
+        if force:
+            # Item-level progress must be cleared too, or a forced re-run of a
+            # per-item stage (download, extract, analyse) would skip every item
+            # it had already completed and quietly do nothing.
+            self.job.checkpoints.stage(stage).completed_items = []
+            self.job.save_checkpoints()
         self.job.start_stage(stage)
         try:
             outcome = runner()

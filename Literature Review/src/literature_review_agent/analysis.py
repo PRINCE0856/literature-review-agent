@@ -45,20 +45,31 @@ LOG = get_logger("analysis")
 # ---------------------------------------------------------------------------
 
 #: Heading patterns that mark the start of each canonical section.
+#: Every pattern allows the plural form. "2. Methods" and "4. Conclusions" are
+#: among the commonest headings in academic writing, and a singular-only pattern
+#: silently fails on them — leaving the heading inside the body text, where it
+#: gets absorbed into the following sentence.
 SECTION_PATTERNS: dict[str, tuple[str, ...]] = {
     "abstract": (r"abstract", r"summary"),
     "introduction": (r"introduction", r"background"),
-    "literature": (r"literature review", r"related work", r"prior work", r"state of the art"),
-    "methods": (
-        r"method", r"methodology", r"materials and methods", r"data and methods",
-        r"model specification", r"research design", r"study design", r"empirical strategy",
-        r"data", r"model",
+    "literature": (
+        r"literature review", r"related works?", r"prior work", r"state of the art",
+        r"background and literature",
     ),
-    "results": (r"results", r"findings", r"empirical results", r"estimation results", r"analysis"),
-    "discussion": (r"discussion", r"interpretation"),
+    "methods": (
+        r"methods?", r"methodolog(?:y|ies)", r"materials and methods",
+        r"data and methods?", r"model specification", r"research design",
+        r"study design", r"empirical strateg(?:y|ies)", r"study area and methods?",
+        r"data", r"data and (?:sources?|variables)", r"models?", r"model and data",
+    ),
+    "results": (
+        r"results?", r"findings?", r"empirical results?", r"estimation results?",
+        r"analysis", r"results and discussion",
+    ),
+    "discussion": (r"discussion", r"interpretation", r"discussions?"),
     "conclusion": (
-        r"conclusion", r"conclusions", r"concluding remarks", r"summary and conclusion",
-        r"policy implications", r"implications",
+        r"conclusions?", r"concluding remarks", r"summary and conclusions?",
+        r"policy implications?", r"implications?", r"conclusions? and recommendations?",
     ),
     "limitations": (
         r"limitations?",
@@ -106,7 +117,11 @@ def detect_section(line: str) -> str | None:
         return None
     for section, patterns in SECTION_PATTERNS.items():
         for pattern in patterns:
-            if re.fullmatch(pattern, lowered) or lowered.startswith(pattern + " "):
+            # Both branches must be regex matches. A literal ``startswith`` would
+            # compare against the pattern source, so any pattern containing a
+            # metacharacter ("findings?") could never match a longer heading
+            # such as "Findings and Policy Implications".
+            if re.fullmatch(pattern, lowered) or re.match(rf"(?:{pattern})\b", lowered):
                 return section
     return None
 
@@ -114,36 +129,65 @@ def detect_section(line: str) -> str | None:
 def build_sentences(pages: list[PageText]) -> list[Sentence]:
     """Flatten pages into section-tagged sentences with page numbers.
 
+    Lines are reassembled into paragraphs *before* sentences are split out. PDF
+    text arrives hard-wrapped at the column width, so splitting line by line
+    would cut sentences mid-clause — turning "ridership increases by 9 per cent"
+    into a fragment that ends at "by 9". A paragraph ends at a blank line, a
+    section heading, or the end of a page.
+
     Reference lists are dropped: a sentence from someone else's title in the
     bibliography must never become evidence about this paper.
     """
     sentences: list[Sentence] = []
     current_section = "front matter"
     in_references = False
+    buffer: list[str] = []
+    buffer_page = 1
+
+    def flush() -> None:
+        """Split the buffered paragraph into sentences and record them."""
+        nonlocal buffer
+        if not buffer:
+            return
+        paragraph = " ".join(buffer)
+        buffer = []
+        if len(paragraph) < 25:
+            return
+        for sentence in _split_sentences(paragraph):
+            if 25 <= len(sentence) <= 700:
+                sentences.append(
+                    Sentence(
+                        text=sentence,
+                        page=buffer_page,
+                        section=current_section,
+                        index=len(sentences),
+                    )
+                )
 
     for page in pages:
         if not page.readable or not page.text:
             continue
         for line in page.text.splitlines():
             if detected := detect_section(line):
+                flush()
                 current_section = detected
                 in_references = detected == "references"
                 continue
             if in_references:
                 continue
             cleaned = " ".join(line.split())
-            if len(cleaned) < 25:
+            if not cleaned:
+                # Blank line: a paragraph boundary.
+                flush()
                 continue
-            for sentence in _split_sentences(cleaned):
-                if 25 <= len(sentence) <= 700:
-                    sentences.append(
-                        Sentence(
-                            text=sentence,
-                            page=page.number,
-                            section=current_section,
-                            index=len(sentences),
-                        )
-                    )
+            if not buffer:
+                # Attribute the paragraph to the page it starts on.
+                buffer_page = page.number
+            buffer.append(cleaned)
+        # A paragraph does not carry across a page break, so page attribution
+        # stays accurate for the evidence citations.
+        flush()
+
     return sentences
 
 
@@ -213,7 +257,9 @@ FIELD_SPECS: tuple[FieldSpec, ...] = (
     FieldSpec(
         "study_design",
         ("cross-sectional", "longitudinal", "panel", "experiment", "quasi-experiment",
-         "survey", "case study", "simulation", "randomised", "randomized", "observational",
+         "survey data", "survey of", "household survey", "questionnaire survey",
+         "stated preference", "revealed preference",
+         "case study", "simulation", "randomised", "randomized", "observational",
          "mixed method", "qualitative", "quantitative", "systematic review", "meta-analysis",
          "before-and-after", "difference-in-difference"),
         ("methods", "abstract"),
@@ -459,6 +505,39 @@ REGION_MAP: dict[str, tuple[str, ...]] = {
 # ---------------------------------------------------------------------------
 
 
+#: Sentences that point at work not yet done. These are legitimate evidence for
+#: gaps and limitations, but never a description of what this paper actually did,
+#: so descriptive fields must reject them.
+FUTURE_FACING_RE = re.compile(
+    r"\b("
+    r"(?:future|further|additional|subsequent)\s+(?:research|work|studies|study|"
+    r"analysis|analyses|investigation)"
+    r"|(?:should|could|ought to|might)\s+(?:be\s+)?(?:explore|explored|examine|examined|"
+    r"investigate|investigated|incorporate|incorporated|extend|extended|address|addressed|"
+    r"consider|considered|include|included|test|tested)"
+    r"|(?:remains?|warrants?)\s+(?:to be|further)"
+    r"|(?:is|are)\s+needed"
+    r"|would benefit from"
+    r")\b",
+    re.IGNORECASE,
+)
+
+#: Fields that describe what the paper did. A future-facing sentence is never
+#: valid evidence for any of these.
+DESCRIPTIVE_FIELDS: frozenset[str] = frozenset({
+    "study_design", "data_source", "sample_size", "unit_of_analysis",
+    "variables", "dependent_variables", "independent_variables",
+    "control_variables", "model_or_method", "model_equations",
+    "software_or_tools", "validation_approach", "study_geography",
+    "study_context", "main_findings",
+})
+
+
+def is_future_facing(text: str) -> bool:
+    """True when a sentence describes work still to be done."""
+    return bool(FUTURE_FACING_RE.search(text or ""))
+
+
 #: Patterns in which authors describe their own study — first person, or the
 #: impersonal academic voice ("results show", "the findings indicate").
 AUTHOR_VOICE_RE = re.compile(
@@ -494,6 +573,10 @@ def score_sentence(sentence: Sentence, spec: FieldSpec) -> float:
     lowered = sentence.text.lower()
     hits = sum(1 for cue in spec.cues if cue in lowered)
     if not hits:
+        return 0.0
+
+    # A sentence about future work cannot describe what this paper did.
+    if spec.name in DESCRIPTIVE_FIELDS and is_future_facing(sentence.text):
         return 0.0
 
     score = float(hits)
