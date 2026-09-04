@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import os
+import importlib.util
 import shutil
 from pathlib import Path
 from typing import Any
@@ -15,6 +15,44 @@ from literature_review_agent.schemas import PaperRecord
 
 FIXTURES = Path(__file__).parent / "fixtures"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _ensure_pdf_fixtures() -> None:
+    """Generate the PDF fixtures if they are absent.
+
+    ``.gitignore`` deliberately excludes ``*.pdf`` so no binary output is ever
+    committed, which means a fresh clone has the generator script but not the
+    PDFs. Building them here keeps the suite runnable straight after cloning.
+    """
+    expected = [
+        FIXTURES / "rainfall_delhi.pdf",
+        FIXTURES / "monsoon_mumbai.pdf",
+        FIXTURES / "scanned_paper.pdf",
+    ]
+    if all(path.exists() for path in expected):
+        return
+
+    generator = FIXTURES / "make_fixtures.py"
+    if not generator.exists():  # pragma: no cover - the script is version-controlled
+        pytest.skip("tests/fixtures/make_fixtures.py is missing; cannot build PDF fixtures")
+
+    spec = importlib.util.spec_from_file_location("make_fixtures", generator)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    module.main(str(FIXTURES))
+
+    # The HTML-disguised-as-PDF fixture is plain text, so build it here.
+    paywall = FIXTURES / "paywall_page.pdf"
+    if not paywall.exists():
+        paywall.write_text(
+            "<!DOCTYPE html>\n<html><head><title>Log in to continue</title></head>\n"
+            "<body><h1>Access denied</h1>\n"
+            "<p>Please sign in with your institutional credentials to view this "
+            "article.</p>\n<p>" + "x" * 1400 + "</p>\n</body></html>\n",
+            encoding="utf-8",
+        )
 
 
 @pytest.fixture(autouse=True)

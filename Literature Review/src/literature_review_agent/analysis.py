@@ -72,11 +72,14 @@ SECTION_PATTERNS: dict[str, tuple[str, ...]] = {
 
 @dataclass
 class Sentence:
-    """One sentence with the page it appeared on."""
+    """One sentence with the page it appeared on and its position in the paper."""
 
     text: str
     page: int
     section: str = ""
+    #: Zero-based position in the document, used to restore reading order when
+    #: several sentences are combined into one field value.
+    index: int = 0
 
 
 def _split_sentences(text: str) -> list[str]:
@@ -134,7 +137,12 @@ def build_sentences(pages: list[PageText]) -> list[Sentence]:
             for sentence in _split_sentences(cleaned):
                 if 25 <= len(sentence) <= 700:
                     sentences.append(
-                        Sentence(text=sentence, page=page.number, section=current_section)
+                        Sentence(
+                            text=sentence,
+                            page=page.number,
+                            section=current_section,
+                            index=len(sentences),
+                        )
                     )
     return sentences
 
@@ -524,9 +532,13 @@ def extract_field(
         )
 
     chosen = candidates[:max_sentences]
-    value = " ".join(sentence.text for _, sentence in chosen)
-    pages = sorted({sentence.page for _, sentence in chosen})
     top_score = chosen[0][0]
+    # Present the sentences in the order they appear in the paper. Joining them
+    # in score order can put a sentence before the one it refers back to, which
+    # reads as a non-sequitur in the generated reports.
+    in_document_order = sorted(chosen, key=lambda pair: pair[1].index)
+    value = " ".join(sentence.text for _, sentence in in_document_order)
+    pages = sorted({sentence.page for _, sentence in chosen})
 
     # Author-stated requires the authors describing their own work, in either the
     # first person or the impersonal academic voice; otherwise the sentence is
