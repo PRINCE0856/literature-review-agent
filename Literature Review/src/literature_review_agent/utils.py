@@ -195,8 +195,12 @@ def safe_filename_stem(title: str, *, max_length: int = MAX_FILENAME_STEM) -> st
         text = "Untitled Paper"
     text = truncate_text(text, max_length, suffix="")
     text = text.strip(" .-") or "Untitled Paper"
-    if text.split(".")[0].upper() in WINDOWS_RESERVED_NAMES:
-        text = f"{text} (paper)"
+    # Windows resolves reserved device names by the segment before the FIRST dot,
+    # so "NUL.pdf" is still the NUL device. Disambiguate that segment itself
+    # rather than appending to the end of the name.
+    first_segment, _, remainder = text.partition(".")
+    if first_segment.upper() in WINDOWS_RESERVED_NAMES:
+        text = f"{first_segment} (paper)" + (f".{remainder}" if remainder else "")
     return text
 
 

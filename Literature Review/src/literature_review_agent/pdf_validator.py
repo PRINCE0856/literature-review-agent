@@ -219,6 +219,10 @@ def validate_pdf(
                     except Exception:  # noqa: BLE001 - skip unreadable pages
                         continue
                 sample_text = "\n".join(text_parts)
+                # The title is compared against the opening pages only. A paper's
+                # reference list cites other papers' titles, so scanning the whole
+                # document would let a bibliography entry masquerade as a match.
+                title_sample = "\n".join(text_parts[:2])
                 result.extractable_chars = len(sample_text.strip())
                 per_page = result.extractable_chars / max(sample_pages, 1)
                 result.requires_ocr = per_page < min_chars_per_page
@@ -228,8 +232,8 @@ def validate_pdf(
                     f"{per_page:.0f} chars/page in the first {sample_pages} pages",
                 )
                 if expected_title:
-                    result.title_in_pdf = _first_meaningful_line(sample_text)
-                    matched = title_plausibly_matches(expected_title, sample_text, document)
+                    result.title_in_pdf = _first_meaningful_line(title_sample)
+                    matched = title_plausibly_matches(expected_title, title_sample, document)
                     result.add(
                         "content matches the intended paper",
                         matched,

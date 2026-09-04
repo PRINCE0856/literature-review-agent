@@ -236,7 +236,7 @@ class Job:
         job = cls(config, paths, settings)
         job.save_config()
         job.checkpoints  # materialise checkpoints.json
-        LOG.info(f"Job ready: {paths.logs.parent.name}/{stamp}/{slug}")
+        LOG.info(f"Job ready: {stamp}/{slug} (folder: {paths.logs})")
         return job
 
     @classmethod

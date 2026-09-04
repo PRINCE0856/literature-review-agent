@@ -60,7 +60,12 @@ SECTION_PATTERNS: dict[str, tuple[str, ...]] = {
         r"conclusion", r"conclusions", r"concluding remarks", r"summary and conclusion",
         r"policy implications", r"implications",
     ),
-    "limitations": (r"limitation", r"limitations and future", r"future research", r"future work"),
+    "limitations": (
+        r"limitations?",
+        r"limitations? and future (?:research|work|directions)",
+        r"future (?:research|work|directions)",
+        r"caveats?",
+    ),
     "references": (r"references", r"bibliography", r"works cited"),
 }
 

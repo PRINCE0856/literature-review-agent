@@ -93,9 +93,14 @@ def title_similarity(left: str, right: str) -> float:
     left_tokens = title_tokens(left)
     right_tokens = title_tokens(right)
     if left_tokens and right_tokens:
-        overlap = len(left_tokens & right_tokens) / max(len(left_tokens), len(right_tokens))
-        # A high fuzzy score with low real overlap is usually a false positive.
-        return min(fuzzy, 60.0 + overlap * 40.0) if overlap < 0.6 else fuzzy
+        # Containment, not symmetric overlap: when one title is the other plus a
+        # subtitle, every token of the shorter one is present and the pair should
+        # still match. Using the larger set as the denominator would wrongly
+        # penalise exactly that case.
+        containment = len(left_tokens & right_tokens) / min(len(left_tokens), len(right_tokens))
+        # A high fuzzy score with low real containment is usually a false
+        # positive driven by shared generic words.
+        return min(fuzzy, 60.0 + containment * 40.0) if containment < 0.6 else fuzzy
     return fuzzy
 
 
@@ -222,7 +227,12 @@ def deduplicate(records: list[PaperRecord], settings: Settings) -> DedupResult:
         title_key = normalize_title(candidate.title)
         if title_key and title_key in by_title:
             existing = by_title[title_key]
-            if years_agree(existing, candidate, year_tolerance):
+            # Two different DOIs are two different records, however identical the
+            # titles look — a preprint and its published version, for instance.
+            dois_conflict = bool(
+                candidate.doi and existing.doi and candidate.doi != existing.doi
+            )
+            if not dois_conflict and years_agree(existing, candidate, year_tolerance):
                 merged = absorb(
                     existing, candidate, "exact normalised title", 100.0,
                     "Titles are identical after normalisation.",
