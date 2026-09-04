@@ -1,0 +1,109 @@
+# Google Drive storage configuration.
+#
+# All literature-review OUTPUTS live in Google Drive. The local numbered folders
+# are staging only: a file is written locally, uploaded, verified against a real
+# Drive file ID, and only then marked complete.
+#
+# CREDENTIALS ARE NEVER STORED HERE. This file holds paths and folder names only.
+# The paths below point at files you place outside version control; both are
+# listed in .gitignore.
+
+drive:
+  # Master switch. When false the pipeline runs entirely locally and every
+  # artefact is marked "local only" in the Drive manifest (never "uploaded").
+  enabled: true
+
+  # How to authenticate:
+  #   oauth           - desktop OAuth client; opens a browser once, then reuses token_file.
+  #   service_account - server-to-server key; best for Shared Drives and headless runs.
+  auth_method: oauth        # oauth | service_account
+
+  # Credential file locations. Relative paths resolve against the project root.
+  # Override either with the matching environment variable in .env.
+  credentials_file: secrets/credentials.json    # env: GOOGLE_DRIVE_CREDENTIALS_FILE
+  token_file: secrets/token.json                # env: GOOGLE_DRIVE_TOKEN_FILE
+  service_account_file: secrets/service_account.json  # env: GOOGLE_SERVICE_ACCOUNT_FILE
+
+  # OAuth scope. drive.file is the least-privilege scope that still allows the
+  # agent to create folders and upload its own files. Use full "drive" scope only
+  # if you need the agent to write into pre-existing folders it did not create.
+  scopes:
+    - https://www.googleapis.com/auth/drive.file
+
+  # Where the tree is created.
+  #   my_drive     - the authenticated user's own Drive.
+  #   shared_drive - a Shared Drive (Team Drive); shared_drive_id is then required.
+  location: my_drive        # my_drive | shared_drive
+  shared_drive_id: null     # env: GOOGLE_SHARED_DRIVE_ID
+
+  # Root folder created (or reused) inside the chosen location.
+  root_folder_name: "Literature Review"
+  # Pin to an existing folder by ID to skip name-based lookup entirely.
+  root_folder_id: null      # env: GOOGLE_DRIVE_ROOT_FOLDER_ID
+
+  # Sub-tree mirrored from the local layout. Job folders are created beneath
+  # each of these as <folder>/YYYY-MM-DD/topic_slug/.
+  top_level_folders:
+    - "01 Keywords"
+    - "02 Literature Papers"
+    - "03 Reports"
+    - "04 Verification"
+    - "05 Logs and State"
+
+  # Nested folders created inside 02 Literature Papers/<date>/<slug>/.
+  paper_subfolders:
+    - "Downloaded Papers"
+    - "Extracted Text"
+    - "Unable to Download"
+
+upload:
+  # Resumable upload is used for anything at or above this size.
+  resumable_threshold_bytes: 5242880      # 5 MB
+  chunk_size_bytes: 5242880               # 5 MB per resumable chunk
+  max_retries: 5
+  backoff_initial_seconds: 1.0
+  backoff_max_seconds: 60.0
+  timeout_seconds: 300
+
+  # Verification performed after every upload. An upload is only marked complete
+  # when Drive returns the file ID and these checks pass.
+  verify:
+    require_file_id: true
+    require_web_view_link: true
+    compare_size: true                    # Drive-reported size must equal local size
+    compare_md5: true                     # compared when Drive supplies md5Checksum
+    reread_metadata: true                 # separate files().get() call after upload
+
+  # What happens to the local staging copy after a verified upload.
+  #   keep   - leave the local file in place (safest; default)
+  #   delete - remove the local staging copy once verification passes
+  on_verified: keep                       # keep | delete
+
+  # Behaviour when an upload fails: the local file is always retained and the
+  # failure is recorded in drive_manifest.json for a resumable retry.
+  on_failure:
+    retain_local_copy: true
+    record_error: true
+    continue_pipeline: true               # one failed upload never aborts the run
+
+  # Overwrite policy when a file of the same name already exists in the folder.
+  #   new_version - upload as a new revision of the existing Drive file (default)
+  #   skip        - leave the existing Drive file untouched
+  #   duplicate   - create a second file with the same name
+  existing_file: new_version              # new_version | skip | duplicate
+
+# MIME types applied on upload so Drive previews the files correctly.
+mime_types:
+  ".pdf": application/pdf
+  ".docx": application/vnd.openxmlformats-officedocument.wordprocessingml.document
+  ".xlsx": application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+  ".csv": text/csv
+  ".json": application/json
+  ".jsonl": application/x-ndjson
+  ".md": text/markdown
+  ".txt": text/plain
+  ".yaml": application/yaml
+  ".yml": application/yaml
+  ".bib": application/x-bibtex
+  ".ris": application/x-research-info-systems
+  ".log": text/plain

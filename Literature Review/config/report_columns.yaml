@@ -1,0 +1,213 @@
+# Column layout for Literature_Review_Matrix.xlsx.
+#
+# `key` is either a PaperRecord field, a dotted path (q1.quartile), or an
+# analysis field name (resolved as analysis.<name>.value). Every column that the
+# agent adds at runtime is documented in the Data Dictionary sheet.
+
+sheets:
+  master_matrix:
+    name: Master Matrix
+    columns:
+      - {key: serial, header: "S. No.", width: 7}
+      - {key: record_id, header: "Record ID", width: 14}
+      - {key: title, header: "Title", width: 55, wrap: true}
+      - {key: authors_joined, header: "Authors", width: 32, wrap: true}
+      - {key: year, header: "Year", width: 8}
+      - {key: journal, header: "Journal / Source", width: 30, wrap: true}
+      - {key: volume, header: "Volume", width: 9}
+      - {key: issue, header: "Issue", width: 8}
+      - {key: pages, header: "Pages / Article No.", width: 14}
+      - {key: doi, header: "DOI", width: 26}
+      - {key: doi_link, header: "DOI Link", width: 26, hyperlink: true}
+      - {key: issn, header: "ISSN", width: 12}
+      - {key: publisher, header: "Publisher", width: 22, wrap: true}
+      - {key: document_type, header: "Document Type", width: 14}
+      - {key: language, header: "Language", width: 10}
+      - {key: citation_count, header: "Citations", width: 10}
+      - {key: citation_count_retrieved, header: "Citations Retrieved", width: 16}
+      - {key: open_access_status, header: "OA Status", width: 12}
+      - {key: licence, header: "Licence", width: 18}
+      - {key: q1.verification_status, header: "Q1 Status", width: 18, status_format: true}
+      - {key: q1.quartile, header: "Quartile", width: 9}
+      - {key: q1.ranking_source, header: "Ranking Source", width: 22, wrap: true}
+      - {key: download_status, header: "Download Status", width: 18, status_format: true}
+      - {key: local_filename, header: "Local Filename", width: 45, wrap: true}
+      - {key: file_sha256, header: "SHA-256", width: 20}
+      - {key: discovery_source, header: "Discovery Source", width: 18}
+      - {key: metadata_sources_joined, header: "Metadata Sources", width: 22, wrap: true}
+      - {key: relevance_score, header: "Relevance", width: 10}
+      - {key: analysis.research_problem, header: "Research Problem", width: 40, wrap: true}
+      - {key: analysis.research_objective, header: "Objective", width: 40, wrap: true}
+      - {key: analysis.study_geography, header: "Study Geography", width: 22, wrap: true}
+      - {key: analysis.study_design, header: "Study Design", width: 24, wrap: true}
+      - {key: analysis.data_source, header: "Data Source", width: 30, wrap: true}
+      - {key: analysis.sample_size, header: "Sample Size", width: 16, wrap: true}
+      - {key: analysis.unit_of_analysis, header: "Unit of Analysis", width: 18, wrap: true}
+      - {key: analysis.dependent_variables, header: "Dependent Variables", width: 28, wrap: true}
+      - {key: analysis.independent_variables, header: "Independent Variables", width: 28, wrap: true}
+      - {key: analysis.control_variables, header: "Control Variables", width: 24, wrap: true}
+      - {key: analysis.model_or_method, header: "Model / Method", width: 30, wrap: true}
+      - {key: analysis.software_or_tools, header: "Software / Tools", width: 20, wrap: true}
+      - {key: analysis.validation_approach, header: "Validation", width: 24, wrap: true}
+      - {key: analysis.main_findings, header: "Main Findings", width: 50, wrap: true}
+      - {key: analysis.policy_implications, header: "Policy Implications", width: 40, wrap: true}
+      - {key: analysis.limitations_stated, header: "Author-Stated Limitations", width: 36, wrap: true}
+      - {key: analysis.gaps_stated_by_authors, header: "Author-Stated Gaps", width: 36, wrap: true}
+      - {key: agent_inferred_gap, header: "Agent-Inferred Gap", width: 36, wrap: true}
+      - {key: analysis.relevance_to_topic, header: "Relevance to Topic", width: 34, wrap: true}
+      - {key: evidence_pages, header: "Evidence Pages", width: 16, wrap: true}
+      - {key: overall_confidence, header: "Analysis Confidence", width: 16}
+      - {key: verification_confidence, header: "Verification Confidence", width: 18}
+      - {key: missing_information_joined, header: "Missing Information", width: 30, wrap: true}
+      - {key: notes, header: "Notes", width: 30, wrap: true}
+
+  methods_and_models:
+    name: Methods and Models
+    columns:
+      - {key: serial, header: "S. No.", width: 7}
+      - {key: model_name, header: "Model / Method", width: 30, wrap: true}
+      - {key: model_category, header: "Category", width: 22, wrap: true}
+      - {key: purpose, header: "Purpose", width: 36, wrap: true}
+      - {key: assumptions, header: "Main Assumptions", width: 34, wrap: true}
+      - {key: required_inputs, header: "Required Inputs", width: 30, wrap: true}
+      - {key: outputs, header: "Outputs", width: 26, wrap: true}
+      - {key: study_application, header: "Study Application", width: 34, wrap: true}
+      - {key: software_used, header: "Software", width: 20, wrap: true}
+      - {key: calibration_approach, header: "Calibration", width: 26, wrap: true}
+      - {key: validation_approach, header: "Validation", width: 26, wrap: true}
+      - {key: advantages, header: "Advantages", width: 30, wrap: true}
+      - {key: limitations, header: "Limitations", width: 30, wrap: true}
+      - {key: paper_count, header: "No. of Papers", width: 12}
+      - {key: citations, header: "Papers Using It", width: 40, wrap: true}
+      - {key: plain_explanation, header: "How It Works (plain)", width: 46, wrap: true}
+
+  key_findings:
+    name: Key Findings
+    columns:
+      - {key: serial, header: "S. No.", width: 7}
+      - {key: record_id, header: "Record ID", width: 14}
+      - {key: in_text_citation, header: "Citation", width: 24}
+      - {key: title, header: "Title", width: 45, wrap: true}
+      - {key: year, header: "Year", width: 8}
+      - {key: study_geography, header: "Geography", width: 20, wrap: true}
+      - {key: model_or_method, header: "Method", width: 26, wrap: true}
+      - {key: main_findings, header: "Main Findings", width: 60, wrap: true}
+      - {key: stance, header: "Evidence Stance", width: 28, wrap: true}
+      - {key: pages, header: "Evidence Pages", width: 14}
+      - {key: confidence, header: "Confidence", width: 12}
+
+  research_gaps:
+    name: Research Gaps
+    columns:
+      - {key: serial, header: "S. No.", width: 7}
+      - {key: gap_id, header: "Gap ID", width: 12}
+      - {key: category, header: "Category", width: 26, wrap: true}
+      - {key: statement, header: "Gap Statement", width: 65, wrap: true}
+      - {key: stance, header: "Evidence Stance", width: 28, wrap: true}
+      - {key: citations, header: "Supporting Papers", width: 34, wrap: true}
+      - {key: evidence_ids, header: "Evidence IDs", width: 26, wrap: true}
+
+  global_landscape:
+    name: Global Landscape
+    columns:
+      - {key: serial, header: "S. No.", width: 7}
+      - {key: dimension, header: "Dimension", width: 22}
+      - {key: item, header: "Item", width: 36, wrap: true}
+      - {key: paper_count, header: "Papers", width: 10}
+      - {key: share, header: "Share of Reviewed Evidence", width: 24}
+      - {key: notes, header: "Notes", width: 40, wrap: true}
+
+  download_failures:
+    name: Download Failures
+    columns:
+      - {key: serial, header: "S. No.", width: 7}
+      - {key: title, header: "Paper Title", width: 50, wrap: true}
+      - {key: authors_joined, header: "Authors", width: 28, wrap: true}
+      - {key: year, header: "Year", width: 8}
+      - {key: journal, header: "Journal", width: 26, wrap: true}
+      - {key: doi, header: "DOI", width: 24}
+      - {key: landing_page_url, header: "Landing Page", width: 30, hyperlink: true}
+      - {key: attempted_urls, header: "Attempted PDF Links", width: 40, wrap: true}
+      - {key: open_access_status, header: "OA Status", width: 12}
+      - {key: failure_reason, header: "Failure Reason", width: 34, wrap: true}
+      - {key: http_status, header: "HTTP Status", width: 12}
+      - {key: attempted_at, header: "Attempted At", width: 20}
+      - {key: recommended_action, header: "Recommended Manual Action", width: 40, wrap: true}
+      - {key: q1_status, header: "Q1 Status", width: 18, status_format: true}
+
+  search_log:
+    name: Search Log
+    columns:
+      - {key: serial, header: "S. No.", width: 7}
+      - {key: timestamp, header: "Timestamp", width: 20}
+      - {key: source, header: "Source", width: 18}
+      - {key: query, header: "Query", width: 60, wrap: true}
+      - {key: breadth, header: "Breadth", width: 10}
+      - {key: results, header: "Results", width: 10}
+      - {key: http_status, header: "HTTP Status", width: 12}
+      - {key: outcome, header: "Outcome", width: 20}
+      - {key: notes, header: "Notes", width: 36, wrap: true}
+
+  q1_verification:
+    name: Q1 Verification
+    columns:
+      - {key: serial, header: "S. No.", width: 7}
+      - {key: record_id, header: "Record ID", width: 14}
+      - {key: title, header: "Title", width: 45, wrap: true}
+      - {key: journal_name, header: "Journal Name", width: 30, wrap: true}
+      - {key: issn, header: "ISSN", width: 12}
+      - {key: eissn, header: "eISSN", width: 12}
+      - {key: publication_year, header: "Publication Year", width: 14}
+      - {key: ranking_year, header: "Ranking Year Used", width: 16}
+      - {key: subject_category, header: "Subject Category", width: 30, wrap: true}
+      - {key: quartile, header: "Quartile", width: 9}
+      - {key: ranking_source, header: "Ranking Source", width: 26, wrap: true}
+      - {key: verification_date, header: "Verification Date", width: 20}
+      - {key: verification_status, header: "Verification Status", width: 20, status_format: true}
+      - {key: matched_on, header: "Matched On", width: 16}
+      - {key: notes, header: "Notes", width: 36, wrap: true}
+
+  citation_audit:
+    name: Citation Audit
+    columns:
+      - {key: serial, header: "S. No.", width: 7}
+      - {key: in_text_citation, header: "In-Text Citation", width: 26}
+      - {key: record_id, header: "Record ID", width: 14}
+      - {key: doi, header: "DOI", width: 24}
+      - {key: title, header: "Title", width: 42, wrap: true}
+      - {key: appears_in, header: "Appears In", width: 30, wrap: true}
+      - {key: in_reference_list, header: "In Reference List", width: 16}
+      - {key: title_match, header: "Title Match", width: 14, status_format: true}
+      - {key: author_match, header: "Author Match", width: 14, status_format: true}
+      - {key: year_match, header: "Year Match", width: 12, status_format: true}
+      - {key: journal_match, header: "Journal Match", width: 14, status_format: true}
+      - {key: doi_resolves, header: "DOI Resolves", width: 14, status_format: true}
+      - {key: outcome, header: "Outcome", width: 12, status_format: true}
+      - {key: notes, header: "Notes", width: 40, wrap: true}
+
+  data_dictionary:
+    name: Data Dictionary
+    columns:
+      - {key: sheet, header: "Sheet", width: 22}
+      - {key: column, header: "Column", width: 30}
+      - {key: definition, header: "Definition", width: 60, wrap: true}
+      - {key: source, header: "Value Source", width: 26, wrap: true}
+      - {key: added_by_agent, header: "Added by Agent", width: 15}
+      - {key: rationale, header: "Rationale for Added Column", width: 44, wrap: true}
+
+# Colours applied by conditional formatting to status columns.
+status_colours:
+  "Verified Q1": "C6EFCE"
+  "Verified non-Q1": "FFF2CC"
+  "Unverified": "FFEB9C"
+  "Conflicting information": "F8CBAD"
+  "Not applicable": "E7E6E6"
+  "Downloaded": "C6EFCE"
+  "Already present": "D9EAD3"
+  "Failed": "FFC7CE"
+  "Not attempted": "E7E6E6"
+  "Skipped - no authorised open-access PDF URL": "FCE4D6"
+  "Skipped - not selected for inclusion": "E7E6E6"
+  "Pass": "C6EFCE"
+  "Warning": "FFEB9C"
+  "Fail": "FFC7CE"

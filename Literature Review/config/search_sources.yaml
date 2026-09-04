@@ -1,0 +1,159 @@
+# Scholarly discovery sources.
+#
+# Sources whose `api_key_env` is set are skipped automatically when that
+# environment variable is absent, so the pipeline stays fully functional with no
+# credentials at all.
+#
+# LEGAL BOUNDARY (enforced in code, not just documented):
+#   * Google Scholar is never scraped.
+#   * Sci-Hub and comparable unauthorised mirrors are never contacted.
+#   * Paywalls, institutional logins, CAPTCHAs, and anti-bot protections are
+#     never bypassed. A PDF is fetched only from a legitimate open-access or
+#     otherwise explicitly authorised direct PDF URL.
+
+sources:
+  crossref:
+    enabled: true
+    label: Crossref
+    kind: metadata
+    base_url: https://api.crossref.org
+    requests_per_second: 3.0
+    api_key_env: null
+    notes: "Authoritative DOI metadata registry. Polite pool via mailto."
+
+  openalex:
+    enabled: true
+    label: OpenAlex
+    kind: metadata
+    base_url: https://api.openalex.org
+    requests_per_second: 3.0
+    api_key_env: OPENALEX_API_KEY      # optional premium key
+    notes: "Broad open bibliographic index with open-access locations."
+
+  semantic_scholar:
+    enabled: true
+    label: Semantic Scholar
+    kind: metadata
+    base_url: https://api.semanticscholar.org/graph/v1
+    requests_per_second: 1.0
+    api_key_env: SEMANTIC_SCHOLAR_API_KEY   # optional, raises rate limits
+    notes: "Citation graph and open-access PDF pointers."
+
+  europe_pmc:
+    enabled: true
+    label: Europe PMC
+    kind: metadata
+    base_url: https://www.ebi.ac.uk/europepmc/webservices/rest
+    requests_per_second: 3.0
+    api_key_env: null
+    notes: "Life-science and health literature, many full-text open records."
+
+  arxiv:
+    enabled: true
+    label: arXiv
+    kind: preprint
+    base_url: http://export.arxiv.org/api/query
+    requests_per_second: 0.34            # arXiv asks for >=3s between calls
+    api_key_env: null
+    notes: "Preprints. Marked as preprints, never as journal articles."
+
+  unpaywall:
+    enabled: true
+    label: Unpaywall
+    kind: oa_locator
+    base_url: https://api.unpaywall.org/v2
+    requests_per_second: 5.0
+    api_key_env: null
+    requires_email: true
+    notes: "Legal open-access location lookup by DOI. Requires contact email."
+
+  core:
+    enabled: true
+    label: CORE
+    kind: repository
+    base_url: https://api.core.ac.uk/v3
+    requests_per_second: 1.0
+    api_key_env: CORE_API_KEY
+    notes: "Open-access repository aggregator. Skipped without CORE_API_KEY."
+
+  elsevier:
+    enabled: true
+    label: Elsevier (Scopus/ScienceDirect)
+    kind: publisher
+    base_url: https://api.elsevier.com/content
+    requests_per_second: 2.0
+    api_key_env: ELSEVIER_API_KEY
+    insttoken_env: ELSEVIER_INSTTOKEN
+    notes: >
+      Metadata search only unless the response itself exposes an authorised
+      open-access full-text URL. Skipped without ELSEVIER_API_KEY.
+
+  springer:
+    enabled: true
+    label: Springer Nature
+    kind: publisher
+    base_url: https://api.springernature.com
+    requests_per_second: 2.0
+    api_key_env: SPRINGER_API_KEY
+    notes: >
+      Metadata search; PDFs only from openaccess URLs the API returns.
+      Skipped without SPRINGER_API_KEY.
+
+# Hosts that must never be contacted for any reason.
+blocked_hosts:
+  - scholar.google.com
+  - scholar.google.co.in
+  - sci-hub.se
+  - sci-hub.st
+  - sci-hub.ru
+  - sci-hub.tw
+  - sci-hub.wf
+  - libgen.is
+  - libgen.rs
+  - libgen.st
+  - z-lib.org
+  - annas-archive.org
+  - booksc.org
+  - 1lib.sk
+
+# Publisher domains where a direct PDF is fetched only when an open-access or
+# explicitly authorised URL is supplied by an API. The downloader never
+# constructs a publisher PDF URL by itself for these hosts.
+authorised_pdf_only_hosts:
+  - sciencedirect.com
+  - link.springer.com
+  - onlinelibrary.wiley.com
+  - tandfonline.com
+  - journals.sagepub.com
+  - ieeexplore.ieee.org
+  - dl.acm.org
+  - pubs.acs.org
+  - nature.com
+  - science.org
+  - cambridge.org
+  - academic.oup.com
+  - emerald.com
+  - asce.org
+  - ascelibrary.org
+
+# Open-access hosts a validated PDF may be fetched from directly.
+trusted_oa_hosts:
+  - arxiv.org
+  - europepmc.org
+  - ncbi.nlm.nih.gov
+  - pmc.ncbi.nlm.nih.gov
+  - doaj.org
+  - mdpi.com
+  - frontiersin.org
+  - plos.org
+  - journals.plos.org
+  - hindawi.com
+  - biomedcentral.com
+  - springeropen.com
+  - copernicus.org
+  - iopscience.iop.org
+  - core.ac.uk
+  - zenodo.org
+  - osti.gov
+  - repository.tudelft.nl
+  - dspace.mit.edu

@@ -1,0 +1,128 @@
+# Default job settings for the Literature Review Agent.
+# Anything the user does not supply on the CLI or in the notebook falls back to
+# these values, and the effective values are always written to job_config.yaml.
+
+job_defaults:
+  year_from: 2015
+  year_to: current_year
+  maximum_papers: 50
+  q1_mode: preferred          # only | preferred | ignore
+  language: English
+  geography: global
+  paper_types:
+    - journal article
+  citation_style: APA 7       # APA 7 | Harvard | IEEE | Vancouver | Chicago 17
+  download_only_legal_and_authorized_content: true
+
+# Output folders, relative to the project root unless output_root is absolute.
+paths:
+  keywords_dir: "01 Keywords"
+  papers_dir: "02 Literature Papers"
+  reports_dir: "03 Reports"
+  verification_dir: "04 Verification"
+  logs_dir: "05 Logs and State"
+  agent_workspace_dir: "05 Logs and State"   # per-agent scratch lives under the job
+
+# Network behaviour shared by every search adapter.
+network:
+  timeout_seconds: 30
+  connect_timeout_seconds: 10
+  max_retries: 4
+  backoff_initial_seconds: 1.0
+  backoff_max_seconds: 30.0
+  default_requests_per_second: 3.0
+  max_redirects: 5
+  max_pdf_bytes: 104857600     # 100 MB safety ceiling
+  # A descriptive user agent is required by Crossref/OpenAlex/Unpaywall etiquette.
+  user_agent_template: "LiteratureReviewAgent/1.0 (+https://github.com/; mailto:{contact_email})"
+  contact_email: "researcher@example.org"
+
+# Search behaviour.
+search:
+  results_per_source: 60
+  max_queries_per_source: 4
+  min_title_length: 8
+  require_year_in_range: true
+  drop_records_without_title: true
+
+# Deduplication thresholds.
+deduplication:
+  fuzzy_title_threshold: 92        # rapidfuzz token_set_ratio, 0-100
+  fuzzy_title_threshold_with_author: 87
+  year_tolerance: 1
+
+# Relevance scoring weights (applied to normalised 0-1 sub-scores).
+relevance:
+  weight_title_match: 0.40
+  weight_abstract_match: 0.25
+  weight_keyword_match: 0.10
+  weight_recency: 0.10
+  weight_open_access: 0.05
+  weight_q1_candidate: 0.10
+  recency_half_life_years: 6
+
+# Selection rules.
+selection:
+  min_relevance_score: 0.10
+  prefer_open_access: true
+  # In q1_mode=only, unverified candidates go to a pending list rather than
+  # being silently treated as Q1.
+  pending_list_filename: pending_q1_verification.csv
+
+# Journal-quartile ranking data. The agent ships no ranking data of its own:
+# quartiles come only from a file the user is licensed to use.
+q1_ranking:
+  enabled: true
+  file: null                    # e.g. "config/scimago_2024.csv"
+  source_name: "User-supplied journal ranking file"
+  ranking_year: null            # null = infer from the file or its name
+  column_map:
+    journal_name: Title
+    issn: Issn
+    quartile: SJR Best Quartile
+    subject_category: Categories
+    ranking_year: Year
+    publisher: Publisher
+  quartile_value_map:
+    Q1: Q1
+    Q2: Q2
+    Q3: Q3
+    Q4: Q4
+    "-": null
+  match:
+    use_issn: true
+    use_exact_name: true
+    use_fuzzy_name: true
+    fuzzy_name_threshold: 95
+
+# PDF handling.
+pdf:
+  validate_signature: true
+  validate_parseable: true
+  reject_html_masquerading_as_pdf: true
+  min_bytes: 1024
+  min_extractable_chars_per_page: 60   # below this a PDF is flagged for OCR
+  ocr_enabled: false                   # optional; never invents missing text
+
+# Analysis behaviour.
+analysis:
+  max_evidence_quote_chars: 400
+  max_pages_to_scan: 60
+  enable_llm: auto                # auto | always | never  (auto = use key if present)
+  llm_model: claude-opus-5
+  llm_max_output_tokens: 4096
+
+# Reporting.
+reporting:
+  max_topic_specific_columns: 10
+  excel_filename: Literature_Review_Matrix.xlsx
+  include_hyperlinks: true
+  freeze_header: true
+  autofilter: true
+
+# Verification.
+verification:
+  resolve_dois: true              # HEAD request against doi.org
+  max_dois_to_resolve: 200
+  require_evidence_for_every_claim: true
+  fail_report_on_unsupported_claim: true

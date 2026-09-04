@@ -1,0 +1,177 @@
+# =====================================================================
+# Literature Review Agent - .gitignore
+#
+# GitHub holds CODE ONLY: source, Claude agents, notebook, config,
+# templates, docs, tests.
+#
+# All literature-review OUTPUTS live in Google Drive. The numbered folders
+# below are local staging only and must never be committed: PDFs, extracted
+# text, Excel matrices, Word reports, evidence ledgers, logs, job state.
+#
+# Credentials and tokens must never be committed under any circumstance.
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# 1. Credentials, tokens, secrets  (NEVER COMMIT)
+# ---------------------------------------------------------------------
+secrets/
+.env
+.env.*
+!.env.example
+credentials.json
+client_secret*.json
+service_account*.json
+token.json
+token.pickle
+*token*.json
+*credentials*.json
+*.pem
+*.key
+*.p12
+*.keystore
+.google/
+gdrive_token*
+
+# ---------------------------------------------------------------------
+# 2. Literature-review outputs  (these belong in Google Drive)
+# ---------------------------------------------------------------------
+# Everything inside the numbered job folders except their README stubs.
+01*Keywords/**
+02*Literature*Papers/**
+03*Reports/**
+04*Verification/**
+05*Logs*and*State/**
+!01*Keywords/README.md
+!02*Literature*Papers/README.md
+!03*Reports/README.md
+!04*Verification/README.md
+!05*Logs*and*State/README.md
+
+# Output file types, wherever they land.
+*.pdf
+*.docx
+*.doc
+*.xlsx
+*.xlsm
+*.xls
+*.pptx
+*.bib
+*.ris
+*.part
+
+# Job state and logs.
+checkpoints.json
+job_config.yaml
+drive_manifest.json
+paper_records.json
+paper_analyses.json
+paper_manifest.json
+paper_manifest.csv
+evidence_records.json
+verification_findings.json
+synthesis.json
+keyword_strategy.json
+raw_search_results.json
+pending_q1_verification.csv
+*.log
+*.jsonl
+.partial/
+agent_workspace/
+
+# Licensed journal-ranking data (yours to license, not ours to redistribute).
+config/*scimago*
+config/*jcr*
+config/*ranking*
+config/*quartile*
+!config/default_config.yaml
+!config/search_sources.yaml
+!config/report_columns.yaml
+!config/google_drive.yaml
+
+# ---------------------------------------------------------------------
+# 3. Python
+# ---------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.virtualenv/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+nosetests.xml
+*.cover
+
+# Type checkers and linters
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# ---------------------------------------------------------------------
+# 4. Jupyter
+# ---------------------------------------------------------------------
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+profile_default/
+ipython_config.py
+
+# ---------------------------------------------------------------------
+# 5. Editors and operating systems
+# ---------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------------------------------
+# 6. Scratch space
+# ---------------------------------------------------------------------
+tmp/
+temp/
+scratch/
+*.tmp
+*.bak
+*.orig

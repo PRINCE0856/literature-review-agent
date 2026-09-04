@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/literature-review-agent/templates/paper_analysis_schema.json",
+  "title": "Paper Analysis Record",
+  "description": "The structured analysis of one paper. Every substantive field carries its own evidence: the value, whether the authors stated it or the agent inferred it, the page numbers it came from, a verbatim supporting quotation, and a confidence grade. A field the paper does not report is recorded as not reported, never filled with a plausible value.",
+  "type": "object",
+  "required": ["record_id", "title", "overall_confidence", "analysed_at"],
+  "additionalProperties": true,
+  "properties": {
+    "record_id": {
+      "type": "string",
+      "description": "Stable internal identifier joining this analysis to its paper record.",
+      "minLength": 1
+    },
+    "doi": {
+      "type": ["string", "null"],
+      "description": "Normalised bare DOI (10.xxxx/yyyy), or null when none was retrieved.",
+      "pattern": "^10\\.[0-9]{4,9}/.+$"
+    },
+    "title": {
+      "type": "string",
+      "description": "The paper's title as recorded in its verified metadata."
+    },
+    "full_citation": {
+      "type": "string",
+      "description": "The complete reference-list entry in the job's citation style."
+    },
+
+    "research_problem": { "$ref": "#/$defs/evidenceField" },
+    "research_objective": { "$ref": "#/$defs/evidenceField" },
+    "research_questions": { "$ref": "#/$defs/evidenceField" },
+    "hypotheses": { "$ref": "#/$defs/evidenceField" },
+    "study_geography": { "$ref": "#/$defs/evidenceField" },
+    "study_context": { "$ref": "#/$defs/evidenceField" },
+    "study_design": { "$ref": "#/$defs/evidenceField" },
+    "data_source": { "$ref": "#/$defs/evidenceField" },
+    "sample_size": { "$ref": "#/$defs/evidenceField" },
+    "unit_of_analysis": { "$ref": "#/$defs/evidenceField" },
+    "variables": { "$ref": "#/$defs/evidenceField" },
+    "dependent_variables": { "$ref": "#/$defs/evidenceField" },
+    "independent_variables": { "$ref": "#/$defs/evidenceField" },
+    "control_variables": { "$ref": "#/$defs/evidenceField" },
+    "model_or_method": { "$ref": "#/$defs/evidenceField" },
+    "model_equations": { "$ref": "#/$defs/evidenceField" },
+    "software_or_tools": { "$ref": "#/$defs/evidenceField" },
+    "validation_approach": { "$ref": "#/$defs/evidenceField" },
+    "main_findings": { "$ref": "#/$defs/evidenceField" },
+    "policy_implications": { "$ref": "#/$defs/evidenceField" },
+    "limitations_stated": { "$ref": "#/$defs/evidenceField" },
+    "gaps_stated_by_authors": { "$ref": "#/$defs/evidenceField" },
+    "relevance_to_topic": { "$ref": "#/$defs/evidenceField" },
+
+    "agent_inferred_gap": {
+      "allOf": [{ "$ref": "#/$defs/evidenceField" }],
+      "description": "A gap the agent inferred from what this paper does not report. Its stance must be 'Agent inference based on evidence' — it is never presented as an author statement."
+    },
+
+    "detected_methods": {
+      "type": "array",
+      "description": "Recognised method names found verbatim in the paper's own text. The verifier confirms each one appears in the source.",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "detected_countries": {
+      "type": "array",
+      "description": "Countries and cities named in the paper's text, used for the landscape statistics.",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "detected_software": {
+      "type": "array",
+      "description": "Software and tools named in the paper's methods.",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+
+    "overall_confidence": {
+      "type": "string",
+      "description": "Confidence in the analysis as a whole, from field coverage, how much is author-stated, and how many pages were readable.",
+      "enum": ["High", "Medium", "Low", "None"]
+    },
+    "missing_information": {
+      "type": "array",
+      "description": "Human-readable names of the fields this paper does not report. Recorded so the reports can state the absence rather than fill it.",
+      "items": { "type": "string" }
+    },
+    "analysed_at": {
+      "type": "string",
+      "description": "UTC timestamp of the analysis.",
+      "format": "date-time"
+    },
+    "analyser": {
+      "type": "string",
+      "description": "Which path produced this record, for example 'deterministic' or 'deterministic + Claude refinement'."
+    }
+  },
+
+  "$defs": {
+    "evidenceField": {
+      "type": "object",
+      "title": "Evidence Field",
+      "description": "One analysed value together with the evidence for it. The stance is what keeps the reports honest: a value is presented as the authors' own only when stance is 'Author explicitly states this'.",
+      "required": ["value", "stance"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "string",
+          "description": "The extracted content. Empty when the field is not reported or could not be verified."
+        },
+        "stance": {
+          "type": "string",
+          "description": "How this value was established. The four states are mutually exclusive and reach the final documents.",
+          "enum": [
+            "Author explicitly states this",
+            "Agent inference based on evidence",
+            "Information not reported",
+            "Information could not be verified"
+          ]
+        },
+        "pages": {
+          "type": "array",
+          "description": "Page numbers supporting the value, taken from the '=== PAGE n ===' markers in the extracted text. The evidence verifier checks that each page exists and that the quotation is on it.",
+          "items": { "type": "integer", "minimum": 1 },
+          "uniqueItems": true
+        },
+        "quote": {
+          "type": "string",
+          "description": "A verbatim sentence from the paper. Must be copyable, character for character, from the extracted text. A quotation that is not in the source is a verification failure, not a paraphrase.",
+          "maxLength": 2000
+        },
+        "confidence": {
+          "type": "string",
+          "description": "Confidence in this individual field.",
+          "enum": ["High", "Medium", "Low", "Not applicable"]
+        }
+      }
+    }
+  },
+
+  "examples": [
+    {
+      "record_id": "a1b2c3d4e5f6",
+      "doi": "10.1016/j.tra.2021.01.001",
+      "title": "Rainfall Intensity and Mode Choice in Delhi",
+      "full_citation": "Sharma, R., & Patel, N. (2021). Rainfall Intensity and Mode Choice in Delhi. Transportation Research Part A, 150(2), 45-61. https://doi.org/10.1016/j.tra.2021.01.001",
+      "research_objective": {
+        "value": "This study examines how rainfall intensity influences mode choice in Delhi, India.",
+        "stance": "Author explicitly states this",
+        "pages": [1],
+        "quote": "This study examines how rainfall intensity influences mode choice in Delhi, India.",
+        "confidence": "High"
+      },
+      "sample_size": {
+        "value": "2,450",
+        "stance": "Author explicitly states this",
+        "pages": [1],
+        "quote": "We estimate a mixed logit model using data from a household travel survey of 2450 respondents.",
+        "confidence": "High"
+      },
+      "model_equations": {
+        "value": "",
+        "stance": "Information not reported",
+        "pages": [],
+        "quote": "",
+        "confidence": "Not applicable"
+      },
+      "agent_inferred_gap": {
+        "value": "Based on what this paper does not report: no validation or robustness strategy is reported; the evidence is specific to Delhi, so transferability to other contexts is untested here.",
+        "stance": "Agent inference based on evidence",
+        "pages": [],
+        "quote": "",
+        "confidence": "Medium"
+      },
+      "detected_methods": ["mixed logit"],
+      "detected_countries": ["India", "Delhi"],
+      "detected_software": ["Biogeme", "Python"],
+      "overall_confidence": "Medium",
+      "missing_information": ["Model equations", "Hypotheses"],
+      "analysed_at": "2026-09-04T05:30:00+00:00",
+      "analyser": "deterministic"
+    }
+  ]
+}
